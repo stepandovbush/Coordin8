@@ -1795,7 +1795,7 @@ function fetchOverpass(query, hint, attempt) {
     hint.textContent = 'That map data service was busy,retrying (' + attempt + '/' + OVERPASS_MAX_ATTEMPTS + ')...';
   }
 
-  return fetchWithTimeout(OVERPASS_ENDPOINT, { method: 'POST', body: query }, 20000)
+    return fetchWithTimeout(OVERPASS_ENDPOINT, { method: 'POST', body: query, referrerPolicy: 'no-referrer' }, 20000)
     .then(function (res) {
       if (!res.ok) throw new Error('Overpass request failed: ' + res.status);
         return res.json();

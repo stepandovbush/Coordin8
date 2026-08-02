@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coordin8</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="app.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body class="app-body">
+
+  <div id="screen-intro" class="intro-overlay">
+    <div class="intro-panel">
+      <svg class="intro-logo" viewBox="0 0 100 118" xmlns="http://www.w3.org/2000/svg" fill="none">
+        <path d="M15 16L50 36L85 16" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M15 40L50 60L85 40" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M15 64L50 84L85 64" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M15 88L50 108L85 88" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="app-shell">
+    <aside class="app-side">
+      <div class="app-side-pattern" aria-hidden="true">
+        <div class="pattern-grid">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div class="app-side-brand">
+        <svg class="brandmark-icon" viewBox="0 0 100 118" xmlns="http://www.w3.org/2000/svg" fill="none">
+          <path d="M15 16L50 36L85 16" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M15 40L50 60L85 40" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M15 64L50 84L85 64" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M15 88L50 108L85 88" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Coordin8
+      </div>
+      <p class="app-side-line">One code outside the door.<br>Everything you need to know, right there.</p>
+    </aside>
+
+    <main class="app-main">
+
+  <!-- SCREEN 1: LOG IN / SIGN UP -->
+  <div id="screen-auth" class="screen active">
+    <div class="auth-viewport">
+      <div class="auth-card">
+        <div class="tabs">
+          <button type="button" class="tab active" data-tab="login">Log In</button>
+          <button type="button" class="tab" data-tab="signup">Sign Up</button>
+        </div>
+
+        <p class="auth-subtitle" id="auth-subtitle">Welcome back. Log in to continue.</p>
+
+        <form id="auth-form" class="stacked-form">
+          <label>
+            Email
+            <input type="email" id="auth-email" placeholder="you@school.edu" required>
+          </label>
+          <label>
+            Password
+            <input type="password" id="auth-password" placeholder="At least 6 characters" minlength="6" required>
+          </label>
+          <label id="confirm-password-wrap" class="hidden">
+            Confirm password
+            <input type="password" id="auth-confirm-password" placeholder="Re-enter your password">
+          </label>
+          <p class="error-msg" id="auth-error"></p>
+          <button type="submit" class="btn primary full" id="auth-submit">Continue</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="easter-egg">
+      <img src="https://i.pinimg.com/originals/14/64/ad/1464adb13da922871b26fddbc8e52631.gif" alt="Vegeta standing in the rain" loading="lazy">
+    </div>
+  </div>
+
+  <!-- SCREEN 2: CAPTCHA -->
+  <div id="screen-captcha" class="screen">
+    <div class="captcha-card">
+      <h2>Quick security check</h2>
+      <p class="captcha-sub">Type the code below to confirm you're not a bot.</p>
+      <canvas id="captcha-canvas" width="400" height="110"></canvas>
+      <button type="button" id="captcha-refresh" class="link-btn">&#8635; Get a new code</button>
+      <input type="text" id="captcha-input" placeholder="Enter code" autocomplete="off">
+      <p class="error-msg" id="captcha-error"></p>
+      <button type="button" id="captcha-verify" class="btn primary full">Verify</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 2.5: EMAIL VERIFICATION -->
+  <div id="screen-verify" class="screen">
+    <div class="captcha-card">
+      <h2>Verify your email</h2>
+      <p class="captcha-sub">We sent a code to <strong id="verify-email-target"></strong>.</p>
+      <input type="text" id="verify-input" placeholder="Enter code" autocomplete="off" maxlength="8">
+      <p class="error-msg" id="verify-error"></p>
+      <button type="button" id="verify-submit" class="btn primary full">Verify</button>
+      <button type="button" id="verify-resend" class="link-btn">Resend code</button>
+      <p class="verify-demo-hint" id="verify-demo-hint"></p>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: SLIDESHOW -->
+  <div id="screen-slideshow" class="screen">
+    <div class="slideshow-card">
+
+      <div class="slides-viewport" id="slides-viewport">
+        <div class="slides" id="slides-track">
+          <div class="slide">
+            <div class="slide-copy">
+              <h2>Every door gets its own code</h2>
+              <p>Point your camera at it and you're there. No app to dig for, no typing in a room number.</p>
+            </div>
+          </div>
+
+          <div class="slide">
+            <div class="slide-copy">
+              <h2>Whatever's actually happening right now</h2>
+              <p>Right now Room 204's running a robotics workshop until 3. If that changes, whoever's in charge updates it in seconds, not next period.</p>
+            </div>
+          </div>
+
+          <div class="slide">
+            <div class="slide-copy">
+              <h2>Read in your language</h2>
+              <p>Every sign translates itself. English, Spanish, Chinese, Arabic, and more, no extra tapping required.</p>
+            </div>
+          </div>
+
+          <div class="slide">
+            <div class="slide-copy">
+              <h2>We're not trying to know who you are</h2>
+              <p>No account needed just to look something up. Info saves itself for offline, and it quietly expires on its own so nobody's reading last week's sign.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dots" id="dots">
+        <button type="button" class="dot-nav active" data-index="0" aria-label="Slide 1"></button>
+        <button type="button" class="dot-nav" data-index="1" aria-label="Slide 2"></button>
+        <button type="button" class="dot-nav" data-index="2" aria-label="Slide 3"></button>
+        <button type="button" class="dot-nav" data-index="3" aria-label="Slide 4"></button>
+      </div>
+
+      <div class="slide-controls">
+        <button type="button" id="slide-skip" class="link-btn">Skip</button>
+        <div class="slide-controls-right">
+          <button type="button" id="slide-back" class="icon-btn" aria-label="Previous">&#8592;</button>
+          <button type="button" id="slide-next" class="btn primary">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: CHOICE -->
+  <div id="screen-choice" class="screen">
+    <div class="choice-card">
+<h2>What are you here to do?</h2>
+      <p class="choice-sub">You can always do the other one later.</p>
+
+      <div class="choice-options">
+        <button type="button" class="choice-option" id="choice-host">
+          <strong>Host an event</strong>
+          <span>Set up a room or space for people to scan into.</span>
+        </button>
+
+        <button type="button" class="choice-option" id="choice-join">
+          <strong>Join an event</strong>
+          <span>Got a code from someone? Enter it here.</span>
+        </button>
+
+        <button type="button" class="choice-option" id="choice-browse">
+          <strong>Just checking out</strong>
+          <span>Browse what's live right now, no code needed.</span>
+        </button>
+      </div>
+
+      <button type="button" class="link-btn back-link" data-back="screen-slideshow">&#8592; Back</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: BROWSE -->
+  <div id="screen-browse" class="screen">
+    <div class="browse-shell">
+      <div class="browse-header">
+        <h2>What's live right now</h2>
+      </div>
+      <div class="browse-grid" id="browse-grid"></div>
+      <button type="button" class="link-btn back-link" data-back="screen-choice">&#8592; Back</button>
+    </div>
+
+    <div class="browse-detail" id="browse-detail">
+      <div class="browse-detail-panel">
+        <button type="button" class="browse-detail-close" id="browse-detail-close" aria-label="Close">&times;</button>
+        <div class="browse-detail-body" id="browse-detail-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: JOIN -->
+  <div id="screen-join" class="screen">
+    <div class="screen-header"><h1>Joining an Event</h1></div>
+    <div class="screen-body">
+    <div class="auth-card">
+      <p class="choice-sub">Enter the code someone shared with you.</p>
+
+      <form id="join-form" class="stacked-form">
+        <label>
+          Event code
+          <input type="text" id="join-code" placeholder="e.g. 7F3-204" autocomplete="off" required>
+        </label>
+        <p class="error-msg" id="join-error"></p>
+        <button type="submit" class="btn primary full">Join</button>
+      </form>
+
+      <button type="button" class="link-btn back-link" data-back="screen-choice">&#8592; Back</button>
+    </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 6: HOST -->
+  <div id="screen-host" class="screen">
+    <div class="screen-header"><h1>Hosting an Event</h1></div>
+    <div class="screen-body">
+    <div class="auth-card host-card">
+      <p class="choice-sub">Fill in what people should see when they scan your code.</p>
+
+      <form id="host-form" class="stacked-form">
+        <label>
+          Event or room name <span class="required-mark">*</span>
+          <input type="text" id="host-name" placeholder="e.g. Room 204" required>
+        </label>
+        <label>
+          What's happening <span class="optional-tag">optional</span>
+          <textarea id="host-info" rows="3" placeholder="e.g. Robotics workshop, open until 3:00 PM"></textarea>
+        </label>
+        <label>
+          Location <span class="required-mark">*</span>
+          <input type="text" id="host-location" placeholder="e.g. Building B, 2nd floor" required>
+        </label>
+        <label>
+          Pin it on a map <span class="optional-tag">optional</span>
+          <div id="host-map" class="host-map"></div>
+          <span class="map-hint" id="host-map-hint">Tap the map to drop a pin.</span>
+          <input type="hidden" id="host-lat">
+          <input type="hidden" id="host-lng">
+        </label>
+        <label>
+          Who can help <span class="optional-tag">optional</span>
+          <input type="text" id="host-contact" placeholder="e.g. Ms. Rivera, or a room number">
+        </label>
+        <label>
+          Extra information <span class="optional-tag">optional</span>
+          <textarea id="host-extra" rows="3" placeholder="e.g. Enter through the side door, bring your own laptop, accessible by ramp"></textarea>
+        </label>
+        <label>
+          Tags <span class="optional-tag">optional</span>
+          <div class="tag-input-row">
+            <input type="text" id="host-tag-input" placeholder="e.g. festival, work">
+          </div>
+          <div class="tag-list" id="host-tag-list"></div>
+          <input type="hidden" id="host-tags">
+        </label>
+        <label>
+          Who can attend <span class="optional-tag">optional</span>
+          <select id="host-requirement">
+            <option value="" selected>No requirement</option>
+            <option value="18+">18+</option>
+            <option value="21+">21+</option>
+            <option value="Members only">Members only</option>
+            <option value="Invite only">Invite only</option>
+            <option value="custom">Other (type your own)</option>
+          </select>
+          <input type="text" id="host-requirement-custom" class="hidden" placeholder="e.g. only girls, staff badge required, grade 11+">
+        </label>
+        <label>
+          How long should this stay active
+          <select id="host-duration">
+            <option value="1h">1 hour</option>
+            <option value="today" selected>Today</option>
+            <option value="week">This week</option>
+            <option value="custom">Custom</option>
+          </select>
+        </label>
+        <p class="error-msg" id="host-error"></p>
+        <button type="submit" class="btn primary full">Create Event</button>
+      </form>
+
+      <button type="button" class="link-btn back-link" data-back="screen-choice">&#8592; Back</button>
+    </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 7: EVENT DASHBOARD -->
+  <div id="screen-blank" class="screen">
+    <div class="dash-shell">
+      <header class="dash-topbar">
+        <button type="button" class="dash-back back-link" data-back="screen-choice" aria-label="Exit event">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+
+        <div class="dash-topbar-title">
+          <span class="dash-bot-name" id="dash-bot-name">EventBot</span>
+          <span class="dash-requirement-badge hidden" id="dash-requirement-badge"></span>
+        </div>
+
+        <div class="dash-topbar-actions">
+          <div class="dash-code" id="dash-code">
+            <span class="dash-code-value" id="dash-code-value">----</span>
+            <button type="button" class="dash-code-copy" id="dash-code-copy">Copy</button>
+          </div>
+
+          <div class="dash-profile">
+            <button type="button" class="dash-avatar" id="dash-profile-btn" aria-label="Profile">
+              <span id="dash-avatar-letter">?</span>
+            </button>
+            <div class="dash-profile-menu" id="dash-profile-menu">
+              <span class="dash-profile-email" id="dash-profile-email">you@school.edu</span>
+              <button type="button" class="dash-profile-logout" id="dash-profile-logout">Log out</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="dash-main">
+        <section class="dash-tab active" data-dash-tab="chat">
+          <div class="dash-chat-log" id="dash-chat-log"></div>
+          <form class="dash-chat-form" id="dash-chat-form">
+            <input type="text" id="dash-chat-input" placeholder="Ask a question..." autocomplete="off">
+            <button type="submit" class="btn primary">Send</button>
+          </form>
+        </section>
+
+        <section class="dash-tab" data-dash-tab="info">
+          <h1>Event Info</h1>
+          <p class="dash-tab-sub">Paste anything <span id="dash-bot-name-2">EventBot</span> should know: schedule, rules, FAQs, links.</p>
+          <textarea id="dash-info-input" rows="12" placeholder="e.g. Doors open at 9am. Lunch is served at noon in the cafeteria. Wifi password is Coordin82026."></textarea>
+          <button type="button" id="dash-info-save" class="btn primary">Save Info</button>
+          <p class="dash-info-saved" id="dash-info-saved"></p>
+        </section>
+
+        <section class="dash-tab" data-dash-tab="activity">
+          <h1>Chat Activity</h1>
+          <p class="dash-tab-sub">See what people are asking and how the bot is answering.</p>
+          <div class="dash-activity-log" id="dash-activity-log">
+            <p class="dash-empty">No questions yet.</p>
+          </div>
+        </section>
+
+        <section class="dash-tab" data-dash-tab="messages">
+          <h1>Direct Messages</h1>
+          <p class="dash-tab-sub">Privately message people at your event.</p>
+          <div class="dash-dm-layout">
+            <ul class="dash-dm-people" id="dash-dm-people"></ul>
+            <div class="dash-dm-thread">
+              <div class="dash-dm-log" id="dash-dm-log"></div>
+              <form class="dash-dm-form" id="dash-dm-form">
+                <input type="text" id="dash-dm-input" placeholder="Type a message..." autocomplete="off">
+                <button type="submit" class="btn primary">Send</button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section class="dash-tab" data-dash-tab="open">
+          <h1>Open Chat</h1>
+          <p class="dash-tab-sub">One shared room, visible to everyone at this event.</p>
+          <div class="dash-chat-log" id="dash-open-log"></div>
+          <form class="dash-chat-form" id="dash-open-form">
+            <input type="text" id="dash-open-input" placeholder="Say something to everyone..." autocomplete="off">
+            <button type="submit" class="btn primary">Send</button>
+          </form>
+        </section>
+
+        <section class="dash-tab" data-dash-tab="headcount">
+          <h1>Headcount</h1>
+          <p class="dash-tab-sub">How many people have scanned into this event.</p>
+          <div class="headcount-display">
+            <span class="headcount-number" id="headcount-number">0</span>
+            <span class="headcount-label">people checked in</span>
+          </div>
+          <button type="button" id="headcount-simulate" class="btn primary">Simulate a check-in</button>
+        </section>
+
+        <section class="dash-tab" data-dash-tab="schedule">
+          <h1>Schedule</h1>
+          <p class="dash-tab-sub">A simple timeline, separate from the free-text event info.</p>
+
+          <form class="schedule-form" id="schedule-form">
+            <input type="text" id="schedule-time" placeholder="e.g. 2:00 PM" required>
+            <input type="text" id="schedule-title" placeholder="e.g. Doors open" required>
+            <button type="submit" class="btn primary">Add</button>
+          </form>
+
+          <ul class="schedule-list" id="schedule-list"></ul>
+        </section>
+
+        <section class="dash-tab" data-dash-tab="photos">
+          <h1>Photo Gallery</h1>
+          <p class="dash-tab-sub">A live record of the event, posted by the host or attendees.</p>
+
+          <label class="photo-upload">
+            <input type="file" id="photo-upload-input" accept="image/*" hidden>
+            <span>+ Add a photo</span>
+          </label>
+
+          <div class="photo-gallery" id="photo-gallery"></div>
+        </section>
+
+        <section class="dash-tab" data-dash-tab="accessibility">
+          <h1>Accessibility</h1>
+          <p class="dash-tab-sub">Toggle what's actually available at this venue. Shown plainly to visitors, not buried in a paragraph.</p>
+
+          <ul class="access-list" id="access-list">
+            <li><label><input type="checkbox" data-access="ramp"> Wheelchair ramp</label></li>
+            <li><label><input type="checkbox" data-access="elevator"> Elevator access</label></li>
+            <li><label><input type="checkbox" data-access="quiet"> Quiet room available</label></li>
+            <li><label><input type="checkbox" data-access="restroom"> Accessible restroom</label></li>
+            <li><label><input type="checkbox" data-access="seating"> Reserved accessible seating</label></li>
+            <li><label><input type="checkbox" data-access="asl"> ASL interpreter on request</label></li>
+          </ul>
+        </section>
+
+        <section class="dash-tab" data-dash-tab="feedback">
+          <h1>Feedback</h1>
+          <p class="dash-tab-sub">Left after the event, useful for repeat hosts.</p>
+
+          <div class="feedback-summary" id="feedback-summary">No feedback yet.</div>
+
+          <form class="feedback-form" id="feedback-form">
+            <div class="star-input" id="star-input">
+              <span data-star="1">&#9733;</span><span data-star="2">&#9733;</span><span data-star="3">&#9733;</span><span data-star="4">&#9733;</span><span data-star="5">&#9733;</span>
+            </div>
+            <textarea id="feedback-comment" rows="3" placeholder="Anything the host should know?"></textarea>
+            <button type="submit" class="btn primary">Submit Feedback</button>
+          </form>
+
+          <ul class="feedback-list" id="feedback-list"></ul>
+        </section>
+
+        <section class="dash-tab" data-dash-tab="map">
+          <h1>Live Map</h1>
+          <p class="dash-tab-sub">Opt in to share where you are with friends at this event. Turns off the moment you leave.</p>
+
+          <div class="map-layout">
+            <div class="venue-map" id="venue-map">
+              <div class="venue-map-canvas" id="venue-map-canvas"></div>
+            </div>
+
+            <div class="map-side">
+              <label class="share-toggle">
+                <input type="checkbox" id="share-location-toggle">
+                <span>Share my live location</span>
+              </label>
+              <p class="map-side-hint" id="map-side-hint">Off. Nobody can see where you are.</p>
+
+              <div class="invite-row">
+                <input type="text" id="invite-code" readonly>
+                <button type="button" id="invite-copy" class="btn primary">Copy Invite</button>
+              </div>
+
+              <h3 class="map-side-title">Friends here</h3>
+              <ul class="friends-list" id="friends-list"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="dash-tab" data-dash-tab="journey">
+          <div class="area3d-header">
+            <div>
+              <h1>Directions</h1>
+              <p class="dash-tab-sub" id="journey-location-label">Real buildings, streets, and this venue's floors, generated from where you pinned the event.</p>
+            </div>
+            <button type="button" id="area3d-load" class="btn primary">Scan Area</button>
+          </div>
+
+          <div class="area3d-canvas-wrap area3d-canvas-wrap--main" id="area3d-canvas-wrap">
+            <div class="area3d-canvas" id="area3d-canvas"></div>
+            <div class="area3d-empty" id="area3d-empty">Click "Scan Area" to generate this venue, with streets and buildings within 500m.</div>
+
+            <button type="button" class="area3d-fullscreen-btn" id="area3d-fullscreen-btn" aria-label="Toggle fullscreen" title="Toggle fullscreen">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 9V5a1 1 0 011-1h4M20 9V5a1 1 0 00-1-1h-4M4 15v4a1 1 0 001 1h4M20 15v4a1 1 0 01-1 1h-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+
+            <button type="button" class="area3d-sky-toggle" id="area3d-sky-toggle" aria-label="Toggle day/night sky" title="Toggle day/night sky">
+              <svg class="icon-sun" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              <svg class="icon-moon" viewBox="0 0 24 24" fill="none"><path d="M20 14.5A8.5 8.5 0 119.5 4a7 7 0 1010.5 10.5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+            </button>
+
+            <div class="area3d-tools" id="area3d-tools">
+              <button type="button" class="area3d-tool-btn" data-tool="landmark" aria-label="Place a landmark" title="Place a landmark">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.4" stroke="currentColor" stroke-width="2"/></svg>
+              </button>
+              <button type="button" class="area3d-tool-btn" data-tool="note" aria-label="Add a sticky note" title="Add a sticky note">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M5 4h14v11l-5 5H5V4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 20v-5h5" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+              </button>
+              <button type="button" class="area3d-tool-btn" data-tool="line" aria-label="Draw a line" title="Draw a line">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="5" cy="19" r="2" fill="currentColor"/><circle cx="19" cy="5" r="2" fill="currentColor"/><path d="M6.5 17.5l11-11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+              <button type="button" class="area3d-tool-btn area3d-tool-btn--delete" data-tool="delete" aria-label="Delete a placed item" title="Delete a placed item">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M9 7V4h6v3" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M6 7l1 13h10l1-13" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <p class="area3d-hint" id="area3d-hint"></p>
+        </section>
+      </main>
+
+      <nav class="dash-tabbar">
+        <button type="button" class="dash-tabbar-item dash-nav-item active" data-dash-tab="chat">
+          <svg class="dash-tabbar-icon" viewBox="0 0 24 24" fill="none"><path d="M4 5h16v11H8l-4 4V5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+          <span>Chat</span>
+        </button>
+        <button type="button" class="dash-tabbar-item dash-nav-item" id="dash-open-map" data-dash-tab="map">
+          <svg class="dash-tabbar-icon" viewBox="0 0 24 24" fill="none"><path d="M12 21s7-6.5 7-12a7 7 0 10-14 0c0 5.5 7 12 7 12z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.4" stroke="currentColor" stroke-width="2"/></svg>
+          <span>Live Map</span>
+        </button>
+        <button type="button" class="dash-tabbar-item dash-nav-item" id="dash-open-journey" data-dash-tab="journey">
+          <svg class="dash-tabbar-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M15.2 8.8l-1.8 5-5 1.8 1.8-5 5-1.8z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <span>Directions</span>
+        </button>
+        <button type="button" class="dash-tabbar-item" id="dash-more-btn">
+          <svg class="dash-tabbar-icon" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="12" r="1.9" fill="currentColor"/><circle cx="12" cy="12" r="1.9" fill="currentColor"/><circle cx="19" cy="12" r="1.9" fill="currentColor"/></svg>
+          <span>More</span>
+        </button>
+      </nav>
+
+      <div class="dash-more-sheet" id="dash-more-sheet">
+        <div class="dash-more-sheet-panel">
+          <div class="dash-more-sheet-header">
+            <span>More</span>
+            <button type="button" id="dash-more-close" aria-label="Close">&times;</button>
+          </div>
+          <button type="button" class="dash-more-item dash-nav-item" data-dash-tab="info">Event Info</button>
+          <button type="button" class="dash-more-item dash-nav-item" data-dash-tab="activity">Chat Activity</button>
+          <button type="button" class="dash-more-item dash-nav-item" data-dash-tab="messages">Direct Messages</button>
+          <button type="button" class="dash-more-item dash-nav-item" data-dash-tab="open">Open Chat</button>
+          <button type="button" class="dash-more-item dash-nav-item" data-dash-tab="headcount">Headcount</button>
+          <button type="button" class="dash-more-item dash-nav-item" data-dash-tab="schedule">Schedule</button>
+          <button type="button" class="dash-more-item dash-nav-item" data-dash-tab="photos">Photo Gallery</button>
+          <button type="button" class="dash-more-item dash-nav-item" data-dash-tab="accessibility">Accessibility</button>
+          <button type="button" class="dash-more-item dash-nav-item" data-dash-tab="feedback">Feedback</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    </main>
+  </div>
+
+  <div class="profile-widget" id="profile-widget">
+    <div class="profile-card">
+      <span class="profile-avatar" id="profile-avatar">?</span>
+      <div class="profile-info">
+        <span class="profile-email" id="profile-email">you@school.edu</span>
+        <button type="button" class="profile-logout" id="profile-logout">Log out</button>
+      </div>
+      <button type="button" class="profile-toggle" id="profile-toggle" aria-label="Collapse profile">&#9662;</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+# no Python dependencies, this is a static site served by server.py
